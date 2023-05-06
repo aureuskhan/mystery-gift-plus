@@ -45,6 +45,9 @@
   <PropertyGroup>
     <ApplicationIcon>Resources\jirachi_128.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Shiny2.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="IniLibrary">
       <HintPath>D:\Applications\Pokemon Files\GTS Distribution\Shiny2\sourceCode\sourceCode\Shiny2\IniLibrary\IniLibrary\bin\Debug\IniLibrary.dll</HintPath>

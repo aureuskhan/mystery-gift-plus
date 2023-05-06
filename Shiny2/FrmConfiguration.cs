@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using IniLibrary;
 using Shiny2.Properties;
 using gts;
+using System.Collections.Generic;
+using System.Linq;
 //All self changes from original code marked with GANNIO, except for cosmetics to the forms and such, they are listed below instead.
 /*Cosmetic Changes from Shiny2:
 Added AltServer IP for rerouting away from the Original Server.
@@ -39,7 +41,7 @@ namespace Shiny2
         {
             return new System.Net.WebClient().DownloadString(Settings.Default.externalIp);
         }
-        
+
         private static string GetIPInternal()
         {
             var host = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
@@ -55,31 +57,51 @@ namespace Shiny2
             //throw new Exception("No network adapters with an IPv4 address in the system!");
 
         }
-/*
-        /// <summary>
-        /// Converts an Image to a Base64 string.
-        /// </summary>
-        /// <param name="image">The image to use.</param>
-        /// <param name="format">The format to save the image in</param>
-        /// <returns></returns>
-        private static string ImageToBase64(Image image, System.Drawing.Imaging.ImageFormat format = null)
+        /*
+                /// <summary>
+                /// Converts an Image to a Base64 string.
+                /// </summary>
+                /// <param name="image">The image to use.</param>
+                /// <param name="format">The format to save the image in</param>
+                /// <returns></returns>
+                private static string ImageToBase64(Image image, System.Drawing.Imaging.ImageFormat format = null)
+                {
+                    // check
+                    if (format == null)
+                        format = System.Drawing.Imaging.ImageFormat.Png;
+
+                    using (var ms = new MemoryStream())
+                    {
+                        // Convert Image to byte[]
+                        image.Save(ms, format);
+                        byte[] imageBytes = ms.ToArray();
+
+                        // Convert byte[] to Base64 String
+                        string base64String = Convert.ToBase64String(imageBytes);
+                        return base64String;
+                    }
+                }
+        */
+        private string CorrectIp(string ip)
         {
-            // check
-            if (format == null)
-                format = System.Drawing.Imaging.ImageFormat.Png;
-
-            using (var ms = new MemoryStream())
+            List<byte> bytes = new List<byte>();
+            string buffer = "";
+            foreach(char c in ip)
             {
-                // Convert Image to byte[]
-                image.Save(ms, format);
-                byte[] imageBytes = ms.ToArray();
-
-                // Convert byte[] to Base64 String
-                string base64String = Convert.ToBase64String(imageBytes);
-                return base64String;
+                string nextNumber = buffer + c;
+                if(int.Parse(nextNumber)>Byte.MaxValue)
+                {
+                    bytes.Add(Byte.Parse(buffer));
+                    buffer = c.ToString();
+                }
+                else
+                {
+                    buffer += c;
+                }
             }
+            bytes.Add(Byte.Parse(buffer));
+            return String.Join(".", bytes);
         }
-*/
 
         /// <summary>
         /// Writes settings to an INI file.
@@ -145,7 +167,7 @@ namespace Shiny2
                                 var line = string.Format("{0}: {1}", DateTime.Now.ToShortTimeString(), args.Data);
                                 lbGtsLog.Items.Add(line);
                                 lbGtsLog.SelectedIndex = lbGtsLog.Items.Count - 1;
-                                if(lbGtsLog.Items.Count > 60)
+                                if (lbGtsLog.Items.Count > 60)
                                     lbGtsLog.Items.RemoveAt(0);
                                 if (!cbLog.Checked) return;
                                 _gtsStream.WriteLine(line);
@@ -157,7 +179,7 @@ namespace Shiny2
                                    Invoke(
                                        new Action(() =>
                                                       {
-                                                          switch(args.GameGeneration)
+                                                          switch (args.GameGeneration)
                                                           {
                                                               case Generation.IV:
                                                                   tbGenIVStatistics.Text =
@@ -170,19 +192,19 @@ namespace Shiny2
                                                                       string.Format("Gen V Pokemon: {0}",
                                                                                     args.NumberSent);
                                                                   break;
-                                                              
+
                                                           }
                                                       }));
             _gts.GtsPokemonReceived += (sender, args) =>
                        Invoke(
                            new Action(() =>
                            {
-                              /* switch (args.GameGeneration)
-                               {
-                                   case Generation.IV:*/
-                                       tBReceivedStatistics.Text =
-                                           string.Format("Received: {0}",
-                                                         args.NumberSent);
+                               /* switch (args.GameGeneration)
+                                {
+                                    case Generation.IV:*/
+                               tBReceivedStatistics.Text =
+                                   string.Format("Received: {0}",
+                                                 args.NumberSent);
                                /*        break;
 
                                    case Generation.V:
@@ -219,7 +241,7 @@ namespace Shiny2
             Icon = Resources.jirachi_128;
             Attach();
         }
-        
+
 
         private void FrmConfigurationLoad(object sender, EventArgs e)
         {
@@ -231,7 +253,7 @@ namespace Shiny2
             cbTemplates.SelectedIndex = 0;
 
             // Laod the INI
-            if(File.Exists("settings.ini"))
+            if (File.Exists("settings.ini"))
             {
                 var ini = new INI();
                 ini.Load("settings.ini", INI.Type.INI);
@@ -248,12 +270,12 @@ namespace Shiny2
                 tbGenIVReceive.Text = ini.GetKeyValue("gts", "IV-Get", string.Empty);
                 tbGenVReceive.Text = ini.GetKeyValue("gts", "V-Get", string.Empty);
 
-                tbIP.Text = ini.GetKeyValue("dns", "ip", string.Empty);
+                tbIP.Text = CorrectIp(ini.GetKeyValue("dns", "ip", string.Empty));
                 //GANNIO: Changes: Add loading of Alt server DNS file.
-                tBAltWFCIP.Text = ini.GetKeyValue("dns", "AltIP", string.Empty);
+                tBAltWFCIP.Text = CorrectIp(ini.GetKeyValue("dns", "AltIP", string.Empty));
                 cbLog.Checked = ini.GetKeyValue("misc", "logFile", false);
                 cbJargon.Checked = ini.GetKeyValue("misc", "jargon", false);
-                
+
                 rtbBrowser.LoadFile(ini.GetKeyValue("misc", "bowser", "msg.txt"), RichTextBoxStreamType.UnicodePlainText);
 
                 try
@@ -270,7 +292,7 @@ namespace Shiny2
             }
 
             // Check for logging reqests
-            if(cbLog.Checked)
+            if (cbLog.Checked)
             {
                 try
                 {
@@ -428,14 +450,14 @@ namespace Shiny2
 
         private void BtnStartDnsClick(object sender, EventArgs e)
         {
-            if(btnStartDNS.Text.Contains("Initialize"))
+            if (btnStartDNS.Text.Contains("Initialize"))
             {
                 // Set the IP
                 _dns.IP = tbIP.Text;
 
                 // start
                 _dns.Start(tBAltWFCIP.Text);
-    
+
                 // change
                 btnStartDNS.Text = Resources.StopDns;
 
@@ -450,12 +472,12 @@ namespace Shiny2
 
         private void BtnStartGtsClick(object sender, EventArgs e)
         {
-            if(btnStartGTS.Text.Contains("Ini&t"))
+            if (btnStartGTS.Text.Contains("Ini&t"))
             {
 
                 #region distribution
                 // Let's see if we're distributing.
-                if(cbOperations.SelectedIndex.Equals(0))
+                if (cbOperations.SelectedIndex.Equals(0))
                 {
                     // we are distributing.
 
@@ -465,12 +487,13 @@ namespace Shiny2
                                        : FolderOptions.Ordered;
 
                     // figure out the mode
-                    _gts.DistributionOptions = (OperationOptions) cbDistribution.SelectedIndex;
+                    _gts.DistributionOptions = (OperationOptions)cbDistribution.SelectedIndex;
 
                     // time to figure out the distribution mode.
                     switch (cbGeneration.SelectedIndex)
                     {
-                        case 0: _gts.DistributionMode = Operation.GenIV;
+                        case 0:
+                            _gts.DistributionMode = Operation.GenIV;
 
                             if (_gts.DistributionOptions == OperationOptions.Individual)
                                 _gts.GenIVFile = tbGenIVSend.Text;
@@ -479,7 +502,8 @@ namespace Shiny2
 
                             break;
 
-                        case 1: _gts.DistributionMode = Operation.GenV;
+                        case 1:
+                            _gts.DistributionMode = Operation.GenV;
 
                             if (_gts.DistributionOptions == OperationOptions.Individual)
                                 _gts.GenVFile = tbGenVSend.Text;
@@ -488,7 +512,8 @@ namespace Shiny2
 
                             break;
 
-                        case 2: _gts.DistributionMode = Operation.Dual;
+                        case 2:
+                            _gts.DistributionMode = Operation.Dual;
 
                             if (_gts.DistributionOptions == OperationOptions.Individual)
                             {
@@ -511,10 +536,10 @@ namespace Shiny2
 
                 #region receiving
 
-                if(cbOperations.SelectedIndex.Equals(1))
+                if (cbOperations.SelectedIndex.Equals(1))
                 {
                     // we are receiving.
-                    switch(cbGeneration.SelectedIndex)
+                    switch (cbGeneration.SelectedIndex)
                     {
                         case 0: // gen 4
                             _gts.DistributionMode = Operation.ReceiveIV;
@@ -569,10 +594,10 @@ namespace Shiny2
 
         private void FrmConfigurationFormClosing(object sender, FormClosingEventArgs e)
         {
-            if(btnStartGTS.Text.Contains("Stop")) _gts.Stop();
-            if(btnStartDNS.Text.Contains("Stop")) _dns.Stop();
+            if (btnStartGTS.Text.Contains("Stop")) _gts.Stop();
+            if (btnStartDNS.Text.Contains("Stop")) _dns.Stop();
 
-            if(cbLog.Checked)
+            if (cbLog.Checked)
             {
                 //Flushing crashed when checkmarked and was pointless, as closing flushes anyway. -Gannio
                 _gtsStream.Close();
@@ -680,7 +705,7 @@ namespace Shiny2
 
                         break;
 
-                }    
+                }
             }
         }
 
