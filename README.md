@@ -227,7 +227,7 @@ Project Link: [https://github.com/aureuskhan/mystery-gift-plus](https://github.c
 [issues-shield]: https://img.shields.io/github/issues/aureuskhan/mystery-gift-plus.svg?style=for-the-badge
 [issues-url]: https://github.com/aureuskhan/mystery-gift-plus/issues
 [license-shield]: https://img.shields.io/github/license/aureuskhan/mystery-gift-plus.svg?style=for-the-badge
-[license-url]: https://github.com/aureuskhan/mystery-gift-plus/blob/master/LICENSE.txt
+[license-url]: https://github.com/aureuskhan/mystery-gift-plus/blob/master/LICENSE
 [product-screenshot]: images/screenshot.png
 [Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
 [Angular-url]: https://angular.io/
